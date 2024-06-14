@@ -68,34 +68,29 @@ class LogManager:
         return logs
 
     def create_query(self, answer):
-        # Разбор ввода пользователя и создание SQL-запроса
         parts = answer.split()
         if parts[0].lower() != 'select':
             raise ValueError("Invalid command format. Expected 'select'.")
 
-        # Получаем список столбцов для выборки
         columns = []
         i = 1
         while i < len(parts) and parts[i] != 'from':
             columns.append(parts[i])
             i += 1
 
-        # Проверяем, что столбцы были указаны
         if not columns:
             raise ValueError("No columns specified for selection.")
 
-        # Получаем таблицу и условия фильтрации
-        if i < len(parts) - 1:  # Убеждаемся, что после 'from' есть еще элементы
+        if i < len(parts) - 1:  
             table = parts[i + 1]
             conditions = []
-            i += 2  # Пропускаем 'from' и таблицу
+            i += 2  
             while i < len(parts) and parts[i] != ';':
                 conditions.append(parts[i])
                 i += 1
         else:
             raise ValueError("Invalid command format. Expected 'from' and table name.")
 
-        # Формируем SQL-запрос
         query = f"SELECT {', '.join(columns)} FROM {table}"
         if conditions:
             query += f" WHERE {' AND '.join(conditions)}"
@@ -106,14 +101,13 @@ class LogManager:
     def create_log(self, line, file_pattern):
         log = Log()
         for pattern in file_pattern:
-            if pattern in self.data_patterns:  # Проверяем, существует ли ключ в словаре data_patterns
+            if pattern in self.data_patterns: 
                 match = re.search(self.data_patterns[pattern], line)
                 if not match:
                     continue
                 if pattern == '%h':
                     log.ip = match.group()
                 elif pattern == '%t':
-                    # Извлекаем строку времени без квадратных скобок
                     date_str = match.group(1).strip('[]')
                     date_object = datetime.datetime.strptime(date_str, '%d/%b/%Y:%H:%M:%S %z')
                     log.date = date_object.strftime('%Y-%m-%d')
@@ -121,11 +115,9 @@ class LogManager:
                     match = re.search(self.data_patterns['%r'], line)
                     if match:
                         request = match.group(1)
-                        # Теперь вызовите re.search() с request
                         match = re.search(self.data_patterns['%r'], line)
                         if match:
                             request = match.group(1)
-                            # Теперь вызовите re.search() с request
                             match = re.search(r'(.*?) (.*?) (.*?) HTTP/1\.[01]" (\d{3}) (.*)', request)
                             if match:
                                 log.method, log.url, _, log.status, log.user_agent = match.groups()
